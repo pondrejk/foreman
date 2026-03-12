@@ -59,6 +59,12 @@ exports[`Routes rendering routes with children renders routes with chidlren 1`] 
       path="/upgrade"
       render={[Function]}
     />
+    <Route
+      exact={true}
+      key="/permissions"
+      path="/permissions"
+      render={[Function]}
+    />
   </ForemanSwitcher>
   <div
     id="router-child"

@@ -23,6 +23,7 @@ module Menu
           menu.item :users,              :caption => N_('Users')
           menu.item :usergroups,         :caption => N_('User Groups')
           menu.item :roles,              :caption => N_('Roles')
+          menu.item :permissions,        :caption => N_('Permissions')
           menu.item :bookmarks,          :caption => N_('Bookmarks')
           menu.item :upgrade,
             caption: N_('Foreman Upgrade'),
