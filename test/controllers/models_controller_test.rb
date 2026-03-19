@@ -1,32 +1,10 @@
 require 'test_helper'
 
 class ModelsControllerTest < ActionController::TestCase
-  def test_new
-    get :new, session: set_session_user
-    assert_template 'new'
-  end
-
-  def test_create_invalid
-    Model.any_instance.stubs(:valid?).returns(false)
-    post :create, params: { :model => {:name => nil} }, session: set_session_user
-    assert_template 'new'
-  end
-
   def test_create_valid
     Model.any_instance.stubs(:valid?).returns(true)
     post :create, params: { :model => {:name => "test"} }, session: set_session_user
     assert_redirected_to models_url
-  end
-
-  def test_edit
-    get :edit, params: { :id => Model.first }, session: set_session_user
-    assert_template 'edit'
-  end
-
-  def test_update_invalid
-    Model.any_instance.stubs(:valid?).returns(false)
-    put :update, params: { :id => Model.first, :model => {:name => nil} }, session: set_session_user
-    assert_template 'edit'
   end
 
   def test_update_valid
