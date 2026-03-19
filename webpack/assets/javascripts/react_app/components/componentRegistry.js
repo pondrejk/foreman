@@ -45,6 +45,7 @@ import { WelcomeAuthSource } from './AuthSource/Welcome';
 import { WelcomeConfigReports } from './ConfigReports/Welcome';
 import { WelcomeArchitecture } from './Architectures/Welcome';
 import JwtTokens from './users/JwtTokens/JwtTokens';
+import ModelCreateForm from './models/ModelCreateForm';
 
 const componentRegistry = {
   registry: forceSingleton('component_registry', () => ({})),
@@ -143,6 +144,7 @@ const coreComponents = [
   { name: 'SettingsTable', type: SettingsTable },
   { name: 'PersonalAccessTokens', type: PersonalAccessTokens },
   { name: 'JwtTokens', type: JwtTokens },
+  { name: 'ModelCreateForm', type: ModelCreateForm },
   { name: 'ClipboardCopy', type: ClipboardCopy },
   { name: 'LabelIcon', type: LabelIcon },
   { name: 'BackendSystemStatus', type: BackendSystemStatus },
