@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import PageLayout from '../common/PageLayout/PageLayout';
 import { translate as __ } from '../../common/I18n';
 import { submitForm } from '../../redux/actions/common/forms';
@@ -9,6 +10,7 @@ import ModelForm from './ModelForm';
 
 const NewModelFormPage = () => {
   const dispatch = useDispatch();
+  const history = useHistory();
   const values = {
     name: '',
     hardware_model: '',
@@ -27,7 +29,7 @@ const NewModelFormPage = () => {
         values: { model: formValues },
         actions: {},
         successCallback: () => {
-          window.location.href = MODELS_PATH;
+          history.push(MODELS_PATH);
         },
         handleError: () => {
           setIsSubmitting(false);
@@ -41,7 +43,14 @@ const NewModelFormPage = () => {
       searchable={false}
       breadcrumbOptions={{
         breadcrumbItems: [
-          { caption: __('Hardware Models'), url: MODELS_PATH },
+          {
+            caption: __('Hardware Models'),
+            url: MODELS_PATH,
+            onClick: e => {
+              e.preventDefault();
+              history.push(MODELS_PATH);
+            },
+          },
           { caption: __('Create Model') },
         ],
       }}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import PageLayout from '../common/PageLayout/PageLayout';
 import { useAPI } from '../../common/hooks/API/APIHooks';
 import { translate as __, sprintf } from '../../common/I18n';
@@ -15,6 +16,7 @@ const EditModelFormPage = ({
   },
 }) => {
   const dispatch = useDispatch();
+  const history = useHistory();
   const { response } = useAPI('get', `${MODELS_API_PATH}/${id}`);
   const [values, setValues] = useState({
     name: '',
@@ -46,7 +48,7 @@ const EditModelFormPage = ({
         values: { model: formValues },
         actions: {},
         successCallback: () => {
-          window.location.href = MODELS_PATH;
+          history.push(MODELS_PATH);
         },
         handleError: () => {
           setIsSubmitting(false);
@@ -60,7 +62,14 @@ const EditModelFormPage = ({
       searchable={false}
       breadcrumbOptions={{
         breadcrumbItems: [
-          { caption: __('Hardware Models'), url: MODELS_PATH },
+          {
+            caption: __('Hardware Models'),
+            url: MODELS_PATH,
+            onClick: e => {
+              e.preventDefault();
+              history.push(MODELS_PATH);
+            },
+          },
           { caption: sprintf(__('Edit %s'), values.name) },
         ],
         isSwitchable: true,
@@ -68,6 +77,10 @@ const EditModelFormPage = ({
           resourceUrl: MODELS_API_PATH,
           nameField: 'name',
           switcherItemUrl: `${MODELS_PATH}/:id/edit`,
+        },
+        onSwitcherItemClick: (e, href) => {
+          e.preventDefault();
+          history.push(href);
         },
       }}
     >

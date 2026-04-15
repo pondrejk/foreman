@@ -1,4 +1,6 @@
 import React from 'react';
+import { createMemoryHistory } from 'history';
+import { Router } from 'react-router-dom';
 import { render, fireEvent, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
@@ -94,31 +96,28 @@ const buildProps = overrides => ({
   ...overrides,
 });
 
+const renderModelForm = propsOverrides => {
+  const history = createMemoryHistory({
+    initialEntries: ['/models/new'],
+  });
+  const utils = render(
+    <Router history={history}>
+      <ModelForm {...buildProps(propsOverrides)} />
+    </Router>
+  );
+  return { ...utils, history };
+};
+
 describe('ModelForm', () => {
-  const originalLocation = window.location;
-
-  beforeEach(() => {
-    delete window.location;
-    window.location = new URL('http://localhost');
-  });
-
-  afterAll(() => {
-    window.location = originalLocation;
-  });
-
   it('renders initial values', () => {
-    render(
-      <ModelForm
-        {...buildProps({
-          initialValues: {
-            name: 'PowerEdge R760',
-            hardware_model: 'sun4u',
-            vendor_class: 'SUNW,Sun-Fire-V490',
-            info: 'Requires custom BIOS setup',
-          },
-        })}
-      />
-    );
+    renderModelForm({
+      initialValues: {
+        name: 'PowerEdge R760',
+        hardware_model: 'sun4u',
+        vendor_class: 'SUNW,Sun-Fire-V490',
+        info: 'Requires custom BIOS setup',
+      },
+    });
 
     expect(screen.getByLabelText('Name')).toHaveValue('PowerEdge R760');
     expect(screen.getByLabelText('Hardware model')).toHaveValue('sun4u');
@@ -131,46 +130,34 @@ describe('ModelForm', () => {
   });
 
   it('disables submit when required name is blank', () => {
-    render(
-      <ModelForm
-        {...buildProps({
-          initialValues: {
-            ...defaultInitialValues,
-            name: '   ',
-          },
-        })}
-      />
-    );
+    renderModelForm({
+      initialValues: {
+        ...defaultInitialValues,
+        name: '   ',
+      },
+    });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
   });
 
   it('disables submit when creating with undefined name', () => {
-    render(
-      <ModelForm
-        {...buildProps({
-          initialValues: {
-            ...defaultInitialValues,
-            name: undefined,
-          },
-        })}
-      />
-    );
+    renderModelForm({
+      initialValues: {
+        ...defaultInitialValues,
+        name: undefined,
+      },
+    });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
   });
 
   it('disables submit when update clears name to empty', () => {
-    render(
-      <ModelForm
-        {...buildProps({
-          initialValues: {
-            ...defaultInitialValues,
-            name: 'KVM',
-          },
-        })}
-      />
-    );
+    renderModelForm({
+      initialValues: {
+        ...defaultInitialValues,
+        name: 'KVM',
+      },
+    });
 
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: '' },
@@ -182,7 +169,7 @@ describe('ModelForm', () => {
   it('submits edited values when form is valid', () => {
     const handleSubmit = jest.fn();
 
-    render(<ModelForm {...buildProps({ handleSubmit })} />);
+    renderModelForm({ handleSubmit });
 
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'PowerEdge R760' },
@@ -210,38 +197,27 @@ describe('ModelForm', () => {
   });
 
   it('keeps submit disabled while submitting', () => {
-    render(
-      <ModelForm
-        {...buildProps({
-          initialValues: {
-            ...defaultInitialValues,
-            name: 'PowerEdge R760',
-          },
-          isSubmitting: true,
-        })}
-      />
-    );
+    renderModelForm({
+      initialValues: {
+        ...defaultInitialValues,
+        name: 'PowerEdge R760',
+      },
+      isSubmitting: true,
+    });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
   });
 
-  it('redirects to models page on cancel', () => {
-    delete window.location;
-    window.location = { href: 'http://localhost/' };
-
-    render(
-      <ModelForm
-        {...buildProps({
-          initialValues: {
-            ...defaultInitialValues,
-            name: 'PowerEdge R760',
-          },
-        })}
-      />
-    );
+  it('navigates to models page on cancel', () => {
+    const { history } = renderModelForm({
+      initialValues: {
+        ...defaultInitialValues,
+        name: 'PowerEdge R760',
+      },
+    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
-    expect(window.location.href).toBe(MODELS_PATH);
+    expect(history.location.pathname).toBe(MODELS_PATH);
   });
 });

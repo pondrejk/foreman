@@ -8,6 +8,7 @@ import {
   ActionGroup,
   Button,
 } from '@patternfly/react-core';
+import { useHistory } from 'react-router-dom';
 import { translate as __ } from '../../common/I18n';
 import LabelIcon from '../../components/common/LabelIcon';
 import { MODELS_PATH } from './constants';
@@ -25,6 +26,7 @@ const INFO_HELP = __(
 );
 
 const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
+  const history = useHistory();
   const [values, setValues] = useState(initialValues);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
   };
 
   const handleCancel = () => {
-    window.location.href = MODELS_PATH;
+    history.push(MODELS_PATH);
   };
 
   const requiredFields = ['name'];
