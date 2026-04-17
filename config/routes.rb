@@ -390,7 +390,7 @@ Foreman::Application.routes.draw do
     end
   end
 
-  resources :models, except: [:show, :index] do
+  resources :models, except: [:show, :index, :new, :edit] do
     member do
       get 'edit', to: 'react#index'
     end

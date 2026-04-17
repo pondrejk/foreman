@@ -4,7 +4,7 @@ class ModelIntegrationTest < IntegrationTestWithJavascript
   test "create new page" do
     visit models_path
     click_on "Create new", class: 'pf-v5-c-button'
-    assert_current_path new_model_path
+    assert_current_path new_models_path
     fill_in "model_name", :with => "IBM 123"
     fill_in "model_hardware_model", :with => "IBMabcde"
     fill_in "model_vendor_class", :with => "ABCDE"

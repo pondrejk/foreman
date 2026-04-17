@@ -87,8 +87,8 @@ export const submitForm = ({
       message ||
       sprintf(
         method === 'put'
-          ? '%s was successfully updated.'
-          : '%s was successfully created.',
+          ? __('%s was successfully updated.')
+          : __('%s was successfully created.'),
         __(item)
       );
 

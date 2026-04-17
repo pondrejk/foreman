@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -6,6 +6,7 @@ import PageLayout from '../common/PageLayout/PageLayout';
 import { useAPI } from '../../common/hooks/API/APIHooks';
 import { translate as __, sprintf } from '../../common/I18n';
 import { submitForm } from '../../redux/actions/common/forms';
+import { STATUS } from '../../constants';
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
@@ -17,26 +18,18 @@ const EditModelFormPage = ({
 }) => {
   const dispatch = useDispatch();
   const history = useHistory();
-  const { response } = useAPI('get', `${MODELS_API_PATH}/${id}`);
-  const [values, setValues] = useState({
-    name: '',
-    hardware_model: '',
-    vendor_class: '',
-    info: '',
-  });
+  const { response, status } = useAPI('get', `${MODELS_API_PATH}/${id}`);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!response) return;
-
-    setValues(prevValues => ({
-      ...prevValues,
+  const initialValues = useMemo(
+    () => ({
       name: response.name || '',
       hardware_model: response.hardware_model || '',
       vendor_class: response.vendor_class || '',
       info: response.info || '',
-    }));
-  }, [response]);
+    }),
+    [response]
+  );
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
@@ -57,35 +50,60 @@ const EditModelFormPage = ({
     );
   };
 
-  return (
-    <PageLayout
-      searchable={false}
-      breadcrumbOptions={{
-        breadcrumbItems: [
-          {
-            caption: __('Hardware Models'),
-            url: MODELS_PATH,
-            onClick: e => {
-              e.preventDefault();
-              history.push(MODELS_PATH);
-            },
-          },
-          { caption: sprintf(__('Edit %s'), values.name) },
-        ],
-        isSwitchable: true,
-        resource: {
-          resourceUrl: MODELS_API_PATH,
-          nameField: 'name',
-          switcherItemUrl: `${MODELS_PATH}/:id/edit`,
-        },
-        onSwitcherItemClick: (e, href) => {
+  const breadcrumbOptions = {
+    breadcrumbItems: [
+      {
+        caption: __('Hardware Models'),
+        url: MODELS_PATH,
+        onClick: e => {
           e.preventDefault();
-          history.push(href);
+          history.push(MODELS_PATH);
         },
-      }}
-    >
+      },
+      {
+        caption:
+          status === STATUS.RESOLVED
+            ? sprintf(__('Edit %s'), initialValues.name)
+            : __('Edit'),
+      },
+    ],
+    isSwitchable: true,
+    resource: {
+      resourceUrl: MODELS_API_PATH,
+      nameField: 'name',
+      switcherItemUrl: `${MODELS_PATH}/:id/edit`,
+    },
+    onSwitcherItemClick: (e, href) => {
+      e.preventDefault();
+      history.push(href);
+    },
+  };
+
+  if (status === STATUS.PENDING) {
+    return (
+      <PageLayout
+        searchable={false}
+        isLoading
+        breadcrumbOptions={breadcrumbOptions}
+      >
+        {null}
+      </PageLayout>
+    );
+  }
+
+  if (status === STATUS.ERROR) {
+    return (
+      <PageLayout searchable={false} breadcrumbOptions={breadcrumbOptions}>
+        {__('Something went wrong')}
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout searchable={false} breadcrumbOptions={breadcrumbOptions}>
       <ModelForm
-        initialValues={values}
+        key={id}
+        initialValues={initialValues}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />

@@ -27,7 +27,7 @@ class ModelsControllerTest < ActionController::TestCase
 
   test 'user with viewer rights should fail to edit a model' do
     setup_user
-    get :edit, params: { :id => Model.first.id }, session: set_session_user.merge(:user => users(:one).id)
-    assert_equal @response.status, 403
+    put :update, params: { :id => Model.first.id, :model => { :name => 'x' } }, session: set_session_user.merge(:user => users(:one).id)
+    assert_response :forbidden
   end
 end

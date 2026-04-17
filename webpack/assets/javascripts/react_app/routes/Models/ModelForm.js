@@ -79,7 +79,6 @@ const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
           name="model_hardware_model"
           type="text"
           ouiaId="model_hardware_model-input"
-          required
           value={values.hardware_model}
           onChange={handleChange('hardware_model')}
         />
@@ -93,7 +92,6 @@ const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
           name="model_vendor_class"
           type="text"
           ouiaId="model_vendor_class-input"
-          required
           value={values.vendor_class}
           onChange={handleChange('vendor_class')}
         />
