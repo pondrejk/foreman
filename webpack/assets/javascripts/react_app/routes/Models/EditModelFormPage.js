@@ -1,15 +1,23 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import PageLayout from '../common/PageLayout/PageLayout';
-import { useAPI } from '../../common/hooks/API/APIHooks';
 import { translate as __, sprintf } from '../../common/I18n';
 import { submitForm } from '../../redux/actions/common/forms';
 import { STATUS } from '../../constants';
+import { APIActions } from '../../redux/API';
+import { selectAPIStatus } from '../../redux/API/APISelectors';
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
+
+const modelToInitialValues = data => ({
+  name: data.name,
+  hardware_model: data.hardware_model || '',
+  vendor_class: data.vendor_class || '',
+  info: data.info || '',
+});
 
 const EditModelFormPage = ({
   match: {
@@ -18,18 +26,23 @@ const EditModelFormPage = ({
 }) => {
   const dispatch = useDispatch();
   const history = useHistory();
-  const { response, status } = useAPI('get', `${MODELS_API_PATH}/${id}`);
+  const fetchKey = `MODEL_EDIT_${id}`;
+  const status = useSelector(state => selectAPIStatus(state, fetchKey));
+  const [initialValues, setInitialValues] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const initialValues = useMemo(
-    () => ({
-      name: response.name || '',
-      hardware_model: response.hardware_model || '',
-      vendor_class: response.vendor_class || '',
-      info: response.info || '',
-    }),
-    [response]
-  );
+  useEffect(() => {
+    setInitialValues(null);
+    dispatch(
+      APIActions.get({
+        url: `${MODELS_API_PATH}/${id}`,
+        key: fetchKey,
+        handleSuccess: response => {
+          setInitialValues(modelToInitialValues(response.data));
+        },
+      })
+    );
+  }, [dispatch, id]);
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
@@ -61,10 +74,9 @@ const EditModelFormPage = ({
         },
       },
       {
-        caption:
-          status === STATUS.RESOLVED
-            ? sprintf(__('Edit %s'), initialValues.name)
-            : __('Edit'),
+        caption: initialValues
+          ? sprintf(__('Edit %s'), initialValues.name || '')
+          : __('Edit'),
       },
     ],
     isSwitchable: true,
@@ -79,14 +91,14 @@ const EditModelFormPage = ({
     },
   };
 
-  if (status === STATUS.PENDING) {
+  if (status !== STATUS.ERROR && initialValues === null) {
     return (
       <PageLayout
         searchable={false}
         isLoading
         breadcrumbOptions={breadcrumbOptions}
       >
-        {null}
+        <></>
       </PageLayout>
     );
   }

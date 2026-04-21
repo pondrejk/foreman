@@ -8,15 +8,16 @@ import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
 
+const EMPTY_MODEL_INITIAL_VALUES = {
+  name: '',
+  hardware_model: '',
+  vendor_class: '',
+  info: '',
+};
+
 const NewModelFormPage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
-  const values = {
-    name: '',
-    hardware_model: '',
-    vendor_class: '',
-    info: '',
-  };
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = formValues => {
@@ -56,7 +57,7 @@ const NewModelFormPage = () => {
       }}
     >
       <ModelForm
-        initialValues={values}
+        initialValues={EMPTY_MODEL_INITIAL_VALUES}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />

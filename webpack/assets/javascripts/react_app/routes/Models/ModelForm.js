@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Form,
@@ -28,10 +28,6 @@ const INFO_HELP = __(
 const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
   const history = useHistory();
   const [values, setValues] = useState(initialValues);
-
-  useEffect(() => {
-    setValues(initialValues);
-  }, [initialValues]);
 
   const handleChange = field => valueOrEvent => {
     const value =
