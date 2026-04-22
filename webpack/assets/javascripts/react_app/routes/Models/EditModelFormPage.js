@@ -32,7 +32,6 @@ const EditModelFormPage = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setInitialValues(null);
     dispatch(
       APIActions.get({
         url: `${MODELS_API_PATH}/${id}`,
@@ -42,7 +41,8 @@ const EditModelFormPage = ({
         },
       })
     );
-  }, [dispatch, id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
@@ -91,34 +91,31 @@ const EditModelFormPage = ({
     },
   };
 
-  if (status !== STATUS.ERROR && initialValues === null) {
-    return (
-      <PageLayout
-        searchable={false}
-        isLoading
-        breadcrumbOptions={breadcrumbOptions}
-      >
-        <></>
-      </PageLayout>
-    );
-  }
+  const isLoading = status !== STATUS.ERROR && initialValues === null;
 
+  let pageContent;
   if (status === STATUS.ERROR) {
-    return (
-      <PageLayout searchable={false} breadcrumbOptions={breadcrumbOptions}>
-        {__('Something went wrong')}
-      </PageLayout>
-    );
-  }
-
-  return (
-    <PageLayout searchable={false} breadcrumbOptions={breadcrumbOptions}>
+    pageContent = __('Something went wrong');
+  } else if (isLoading) {
+    pageContent = <></>;
+  } else {
+    pageContent = (
       <ModelForm
         key={id}
         initialValues={initialValues}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />
+    );
+  }
+
+  return (
+    <PageLayout
+      searchable={false}
+      isLoading={isLoading}
+      breadcrumbOptions={breadcrumbOptions}
+    >
+      {pageContent}
     </PageLayout>
   );
 };
