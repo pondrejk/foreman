@@ -1,13 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import PageLayout from '../common/PageLayout/PageLayout';
 import { translate as __, sprintf } from '../../common/I18n';
 import { submitForm } from '../../redux/actions/common/forms';
 import { STATUS } from '../../constants';
 import { APIActions } from '../../redux/API';
-import { selectAPIStatus } from '../../redux/API/APISelectors';
+import {
+  selectAPIResponse,
+  selectAPIStatus,
+} from '../../redux/API/APISelectors';
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
@@ -28,28 +31,26 @@ const EditModelFormPage = ({
   const history = useHistory();
   const fetchKey = `MODEL_EDIT_${id}`;
   const status = useSelector(state => selectAPIStatus(state, fetchKey));
-  const [modelSnapshot, setModelSnapshot] = useState(null);
+  const apiResponse = useSelector(
+    state => selectAPIResponse(state, fetchKey),
+    shallowEqual
+  );
   const initialValues =
-    modelSnapshot && modelSnapshot.id === id ? modelSnapshot.values : null;
+    status === STATUS.RESOLVED &&
+    apiResponse &&
+    typeof apiResponse.id !== 'undefined'
+      ? modelToInitialValues(apiResponse)
+      : null;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const currentIdRef = useRef(id);
-  currentIdRef.current = id;
 
   useEffect(() => {
     dispatch(
       APIActions.get({
         url: `${MODELS_API_PATH}/${id}`,
         key: fetchKey,
-        handleSuccess: response => {
-          if (currentIdRef.current !== id) return;
-          setModelSnapshot({
-            id,
-            values: modelToInitialValues(response.data),
-          });
-        },
       })
     );
-  }, [dispatch, id]);
+  }, [dispatch, id, fetchKey]);
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
