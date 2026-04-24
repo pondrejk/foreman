@@ -399,6 +399,7 @@ Foreman::Application.routes.draw do
       get 'auto_complete_search'
     end
   end
+  get 'models/:id', to: 'react#index'
   match 'models' => 'react#index', :via => :get
 
   resources :architectures, except: [:show] do
