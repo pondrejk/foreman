@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -28,8 +28,12 @@ const EditModelFormPage = ({
   const history = useHistory();
   const fetchKey = `MODEL_EDIT_${id}`;
   const status = useSelector(state => selectAPIStatus(state, fetchKey));
-  const [initialValues, setInitialValues] = useState(null);
+  const [modelSnapshot, setModelSnapshot] = useState(null);
+  const initialValues =
+    modelSnapshot && modelSnapshot.id === id ? modelSnapshot.values : null;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const currentIdRef = useRef(id);
+  currentIdRef.current = id;
 
   useEffect(() => {
     dispatch(
@@ -37,12 +41,15 @@ const EditModelFormPage = ({
         url: `${MODELS_API_PATH}/${id}`,
         key: fetchKey,
         handleSuccess: response => {
-          setInitialValues(modelToInitialValues(response.data));
+          if (currentIdRef.current !== id) return;
+          setModelSnapshot({
+            id,
+            values: modelToInitialValues(response.data),
+          });
         },
       })
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dispatch, id]);
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
