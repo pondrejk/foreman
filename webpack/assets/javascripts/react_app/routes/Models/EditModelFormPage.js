@@ -14,6 +14,7 @@ import {
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
+import ModelFormSkeleton from './ModelFormSkeleton';
 
 const modelToInitialValues = data => ({
   name: data.name,
@@ -105,7 +106,7 @@ const EditModelFormPage = ({
   if (status === STATUS.ERROR) {
     pageContent = __('Something went wrong');
   } else if (isLoading) {
-    pageContent = <></>;
+    pageContent = <ModelFormSkeleton />;
   } else {
     pageContent = (
       <ModelForm
@@ -118,11 +119,7 @@ const EditModelFormPage = ({
   }
 
   return (
-    <PageLayout
-      searchable={false}
-      isLoading={isLoading}
-      breadcrumbOptions={breadcrumbOptions}
-    >
+    <PageLayout searchable={false} breadcrumbOptions={breadcrumbOptions}>
       {pageContent}
     </PageLayout>
   );
