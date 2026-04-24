@@ -20,6 +20,8 @@ export const emptyStatePatternPropTypes = {
   description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   action: PropTypes.node,
   secondaryActions: PropTypes.node,
+  /** @see {@link https://www.patternfly.org/components/empty-state#empty-state-variant} */
+  variant: PropTypes.oneOf(['xs', 'sm', 'lg', 'xl', 'full']),
 };
 
 export const defaultEmptyStatePropTypes = {

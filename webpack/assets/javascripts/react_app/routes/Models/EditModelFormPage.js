@@ -8,6 +8,7 @@ import { submitForm } from '../../redux/actions/common/forms';
 import { STATUS } from '../../constants';
 import { APIActions } from '../../redux/API';
 import {
+  selectAPIErrorMessage,
   selectAPIResponse,
   selectAPIStatus,
 } from '../../redux/API/APISelectors';
@@ -15,6 +16,7 @@ import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
 import ModelFormSkeleton from './ModelFormSkeleton';
+import ModelFormEmptyState from './ModelFormEmptyState';
 
 const modelToInitialValues = data => ({
   name: data.name,
@@ -42,6 +44,9 @@ const EditModelFormPage = ({
     typeof apiResponse.id !== 'undefined'
       ? modelToInitialValues(apiResponse)
       : null;
+  const errorMessage = useSelector(state =>
+    selectAPIErrorMessage(state, fetchKey)
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -104,7 +109,9 @@ const EditModelFormPage = ({
 
   let pageContent;
   if (status === STATUS.ERROR) {
-    pageContent = __('Something went wrong');
+    pageContent = (
+      <ModelFormEmptyState modelId={id} errorMessage={errorMessage} />
+    );
   } else if (isLoading) {
     pageContent = <ModelFormSkeleton />;
   } else {
