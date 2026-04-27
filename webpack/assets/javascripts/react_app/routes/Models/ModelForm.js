@@ -25,7 +25,12 @@ const INFO_HELP = __(
   'General useful description, for example this kind of hardware needs a special BIOS setup'
 );
 
-const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
+const ModelForm = ({
+  initialValues,
+  handleSubmit,
+  isSubmitting,
+  existingNames,
+}) => {
   const history = useHistory();
   const [values, setValues] = useState(initialValues);
 
@@ -48,14 +53,29 @@ const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
   };
 
   const requiredFields = ['name'];
+  const duplicateNameMessage = __('Name already exists');
+  const normalizedName = (values.name || '').trim().toLowerCase();
+  const normalizedInitialName = (initialValues.name || '').trim().toLowerCase();
+  const nameAlreadyExists =
+    normalizedName &&
+    normalizedName !== normalizedInitialName &&
+    existingNames.some(
+      existingName =>
+        (existingName || '').trim().toLowerCase() === normalizedName
+    );
 
-  const isSubmitDisabled = requiredFields.some(
-    field => !(values[field] || '').trim()
-  );
+  const isSubmitDisabled =
+    requiredFields.some(field => !(values[field] || '').trim()) ||
+    nameAlreadyExists;
 
   return (
     <Form id="model-create-form" isWidthLimited onSubmit={onSubmit}>
-      <FormGroup label={__('Name')} isRequired>
+      <FormGroup
+        label={__('Name')}
+        isRequired
+        validated={nameAlreadyExists ? 'error' : 'default'}
+        helperTextInvalid={nameAlreadyExists ? duplicateNameMessage : ''}
+      >
         <TextInput
           id="model_name"
           name="model_name"
@@ -64,7 +84,13 @@ const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
           required
           value={values.name}
           onChange={handleChange('name')}
+          validated={nameAlreadyExists ? 'error' : 'default'}
         />
+        {nameAlreadyExists && (
+          <div style={{ color: 'var(--pf-v5-global--danger-color--100)' }}>
+            {duplicateNameMessage}
+          </div>
+        )}
       </FormGroup>
       <FormGroup
         label={__('Hardware model')}
@@ -133,10 +159,12 @@ ModelForm.propTypes = {
   }).isRequired,
   handleSubmit: PropTypes.func.isRequired,
   isSubmitting: PropTypes.bool,
+  existingNames: PropTypes.arrayOf(PropTypes.string),
 };
 
 ModelForm.defaultProps = {
   isSubmitting: false,
+  existingNames: [],
 };
 
 export default ModelForm;

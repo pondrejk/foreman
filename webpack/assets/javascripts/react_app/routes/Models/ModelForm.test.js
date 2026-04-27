@@ -93,6 +93,7 @@ const buildProps = overrides => ({
   initialValues: defaultInitialValues,
   handleSubmit: jest.fn(),
   isSubmitting: false,
+  existingNames: [],
   ...overrides,
 });
 
@@ -164,6 +165,31 @@ describe('ModelForm', () => {
     });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+  });
+
+  it('disables submit when name already exists', () => {
+    renderModelForm({
+      existingNames: ['PowerEdge R760', 'Dell R650'],
+    });
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'poweredge r760' },
+    });
+
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    expect(screen.getByText('Name already exists')).toBeInTheDocument();
+  });
+
+  it('allows submit in edit mode when name is unchanged', () => {
+    renderModelForm({
+      initialValues: {
+        ...defaultInitialValues,
+        name: 'PowerEdge R760',
+      },
+      existingNames: ['PowerEdge R760', 'Dell R650'],
+    });
+
+    expect(screen.getByRole('button', { name: 'Submit' })).not.toBeDisabled();
   });
 
   it('submits edited values when form is valid', () => {

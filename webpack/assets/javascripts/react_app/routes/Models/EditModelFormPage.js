@@ -33,11 +33,20 @@ const EditModelFormPage = ({
   const dispatch = useDispatch();
   const history = useHistory();
   const fetchKey = `MODEL_EDIT_${id}`;
+  const modelNamesFetchKey = `MODEL_NAMES_EDIT_${id}`;
   const status = useSelector(state => selectAPIStatus(state, fetchKey));
   const apiResponse = useSelector(
     state => selectAPIResponse(state, fetchKey),
     shallowEqual
   );
+  const modelsResponse = useSelector(
+    state => selectAPIResponse(state, modelNamesFetchKey),
+    shallowEqual
+  );
+  const existingNames =
+    modelsResponse && Array.isArray(modelsResponse.results)
+      ? modelsResponse.results.map(({ name }) => name).filter(Boolean)
+      : [];
   const initialValues =
     status === STATUS.RESOLVED &&
     apiResponse &&
@@ -56,7 +65,16 @@ const EditModelFormPage = ({
         key: fetchKey,
       })
     );
-  }, [dispatch, id, fetchKey]);
+    dispatch(
+      APIActions.get({
+        url: MODELS_API_PATH,
+        key: modelNamesFetchKey,
+        params: {
+          per_page: 10000,
+        },
+      })
+    );
+  }, [dispatch, id, fetchKey, modelNamesFetchKey]);
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
@@ -121,6 +139,7 @@ const EditModelFormPage = ({
         initialValues={initialValues}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+        existingNames={existingNames}
       />
     );
   }

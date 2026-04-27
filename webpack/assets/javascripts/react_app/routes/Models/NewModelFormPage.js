@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import PageLayout from '../common/PageLayout/PageLayout';
 import { translate as __ } from '../../common/I18n';
 import { submitForm } from '../../redux/actions/common/forms';
+import { APIActions } from '../../redux/API';
+import { selectAPIResponse } from '../../redux/API/APISelectors';
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 import ModelForm from './ModelForm';
@@ -18,7 +20,28 @@ const EMPTY_MODEL_INITIAL_VALUES = {
 const NewModelFormPage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
+  const modelNamesFetchKey = 'MODEL_NAMES_NEW';
+  const modelsResponse = useSelector(
+    state => selectAPIResponse(state, modelNamesFetchKey),
+    shallowEqual
+  );
+  const existingNames =
+    modelsResponse && Array.isArray(modelsResponse.results)
+      ? modelsResponse.results.map(({ name }) => name).filter(Boolean)
+      : [];
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    dispatch(
+      APIActions.get({
+        url: MODELS_API_PATH,
+        key: modelNamesFetchKey,
+        params: {
+          per_page: 10000,
+        },
+      })
+    );
+  }, [dispatch]);
 
   const handleSubmit = formValues => {
     setIsSubmitting(true);
@@ -60,6 +83,7 @@ const NewModelFormPage = () => {
         initialValues={EMPTY_MODEL_INITIAL_VALUES}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+        existingNames={existingNames}
       />
     </PageLayout>
   );
