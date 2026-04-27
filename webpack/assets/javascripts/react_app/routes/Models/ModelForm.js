@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Form,
@@ -10,8 +10,9 @@ import {
 } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
 import { translate as __ } from '../../common/I18n';
+import API from '../../redux/API/API';
 import LabelIcon from '../../components/common/LabelIcon';
-import { MODELS_PATH } from './constants';
+import { MODELS_API_PATH, MODELS_PATH } from './constants';
 
 const HARDWARE_MODEL_HELP = __(
   'The class of CPU supplied in this machine. This is primarily used by Sparc Solaris builds and can be left blank for other architectures. The value can be determined on Solaris via uname -m'
@@ -25,14 +26,16 @@ const INFO_HELP = __(
   'General useful description, for example this kind of hardware needs a special BIOS setup'
 );
 
-const ModelForm = ({
-  initialValues,
-  handleSubmit,
-  isSubmitting,
-  existingNames,
-}) => {
+const NAME_CHECK_DEBOUNCE_MS = 300;
+
+const escapeModelNameForSearch = value =>
+  value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
   const history = useHistory();
   const [values, setValues] = useState(initialValues);
+  const [nameAlreadyExists, setNameAlreadyExists] = useState(false);
+  const latestNameCheckId = useRef(0);
 
   const handleChange = field => valueOrEvent => {
     const value =
@@ -54,15 +57,49 @@ const ModelForm = ({
 
   const requiredFields = ['name'];
   const duplicateNameMessage = __('Name already exists');
-  const normalizedName = (values.name || '').trim().toLowerCase();
-  const normalizedInitialName = (initialValues.name || '').trim().toLowerCase();
-  const nameAlreadyExists =
-    normalizedName &&
-    normalizedName !== normalizedInitialName &&
-    existingNames.some(
-      existingName =>
-        (existingName || '').trim().toLowerCase() === normalizedName
-    );
+
+  useEffect(() => {
+    const name = (values.name || '').trim();
+    const initialName = (initialValues.name || '').trim();
+    const normalizedName = name.toLowerCase();
+
+    if (!normalizedName || normalizedName === initialName.toLowerCase()) {
+      setNameAlreadyExists(false);
+      return undefined;
+    }
+
+    const requestId = latestNameCheckId.current + 1;
+    latestNameCheckId.current = requestId;
+
+    const timeoutId = setTimeout(() => {
+      const checkNameExists = async () => {
+        try {
+          const { data } = await API.get(
+            MODELS_API_PATH,
+            {},
+            {
+              search: `name="${escapeModelNameForSearch(name)}"`,
+              per_page: 20,
+            }
+          );
+          if (latestNameCheckId.current !== requestId) return;
+          const results = Array.isArray(data?.results) ? data.results : [];
+          const duplicateFound = results.some(
+            ({ name: resultName }) =>
+              (resultName || '').trim().toLowerCase() === normalizedName
+          );
+          setNameAlreadyExists(duplicateFound);
+        } catch (_error) {
+          if (latestNameCheckId.current !== requestId) return;
+          setNameAlreadyExists(false);
+        }
+      };
+
+      checkNameExists();
+    }, NAME_CHECK_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [values.name, initialValues.name]);
 
   const isSubmitDisabled =
     requiredFields.some(field => !(values[field] || '').trim()) ||
@@ -159,12 +196,10 @@ ModelForm.propTypes = {
   }).isRequired,
   handleSubmit: PropTypes.func.isRequired,
   isSubmitting: PropTypes.bool,
-  existingNames: PropTypes.arrayOf(PropTypes.string),
 };
 
 ModelForm.defaultProps = {
   isSubmitting: false,
-  existingNames: [],
 };
 
 export default ModelForm;
