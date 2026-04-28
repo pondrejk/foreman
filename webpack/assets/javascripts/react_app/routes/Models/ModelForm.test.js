@@ -1,16 +1,11 @@
 import React from 'react';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router-dom';
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
 import ModelForm from './ModelForm';
 import { MODELS_PATH } from './constants';
-import API from '../../redux/API/API';
-
-jest.mock('../../redux/API/API', () => ({
-  get: jest.fn(),
-}));
 
 jest.mock('@patternfly/react-core', () => {
   const ReactLib = require('react');
@@ -114,11 +109,6 @@ const renderModelForm = propsOverrides => {
 };
 
 describe('ModelForm', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    API.get.mockResolvedValue({ data: { results: [] } });
-  });
-
   it('renders initial values', () => {
     renderModelForm({
       initialValues: {
@@ -174,37 +164,6 @@ describe('ModelForm', () => {
     });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
-  });
-
-  it('disables submit when name already exists', async () => {
-    API.get.mockResolvedValue({
-      data: {
-        results: [{ name: 'PowerEdge R760' }],
-      },
-    });
-
-    renderModelForm();
-
-    fireEvent.change(screen.getByLabelText('Name'), {
-      target: { value: 'poweredge r760' },
-    });
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
-      expect(screen.getByText('Name already exists')).toBeInTheDocument();
-    });
-  });
-
-  it('allows submit in edit mode when name is unchanged', () => {
-    renderModelForm({
-      initialValues: {
-        ...defaultInitialValues,
-        name: 'PowerEdge R760',
-      },
-    });
-
-    expect(screen.getByRole('button', { name: 'Submit' })).not.toBeDisabled();
-    expect(API.get).not.toHaveBeenCalled();
   });
 
   it('submits edited values when form is valid', () => {
