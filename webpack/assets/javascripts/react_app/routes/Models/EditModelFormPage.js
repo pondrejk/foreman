@@ -13,6 +13,7 @@ import {
   selectAPIStatus,
 } from '../../redux/API/APISelectors';
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
+import { modelErrorToast } from './modelErrorToast';
 
 import ModelForm from './ModelForm';
 import ModelFormSkeleton from './ModelFormSkeleton';
@@ -67,6 +68,7 @@ const EditModelFormPage = ({
         url: `${MODELS_API_PATH}/${id}`,
         values: { model: formValues },
         actions: {},
+        errorToast: modelErrorToast,
         successCallback: () => {
           history.push(MODELS_PATH);
         },

@@ -5,6 +5,7 @@ import PageLayout from '../common/PageLayout/PageLayout';
 import { translate as __ } from '../../common/I18n';
 import { submitForm } from '../../redux/actions/common/forms';
 import { MODELS_API_PATH, MODELS_PATH } from './constants';
+import { modelErrorToast } from './modelErrorToast';
 
 import ModelForm from './ModelForm';
 
@@ -29,6 +30,7 @@ const NewModelFormPage = () => {
         url: MODELS_API_PATH,
         values: { model: formValues },
         actions: {},
+        errorToast: modelErrorToast,
         successCallback: () => {
           history.push(MODELS_PATH);
         },
