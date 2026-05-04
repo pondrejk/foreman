@@ -97,7 +97,6 @@ const ModelForm = ({ initialValues, handleSubmit, isSubmitting }) => {
           id="model_info"
           name="model_info"
           rows={7}
-          ouiaId="info-textarea"
           value={values.info}
           onChange={handleChange('info')}
         />

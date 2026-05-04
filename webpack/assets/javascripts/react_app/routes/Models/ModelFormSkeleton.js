@@ -12,11 +12,11 @@ import { translate as __ } from '../../common/I18n';
 const labelSkeleton = <Skeleton height="14px" width="30%" />;
 
 const ModelFormSkeleton = () => (
-  <Form isWidthLimited ouiaId="model-form-skeleton">
+  <Form isWidthLimited id="model-form-skeleton">
     <Stack hasGutter>
       <StackItem>
         {labelSkeleton}
-        <Skeleton height="36px" screenReaderText={__('Loading form')} />
+        <Skeleton height="36px" screenreaderText={__('Loading form')} />
       </StackItem>
       <StackItem>
         {labelSkeleton}
