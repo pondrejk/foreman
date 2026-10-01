@@ -1,0 +1,102 @@
+= Ansible dashboard widget reproducer
+
+The link:../script/seed_ansible_dashboard.rb[seed script] populates
+_Host Configuration Status for Ansible_ with nine synthetic hosts and
+configuration reports. Use it on a development or disposable test instance
+with the foreman_ansible plugin installed and an admin user available.
+It writes to the database selected by the Rails environment.
+No Ansible execution or reachable managed machines are required.
+
+== Create or refresh the data
+
+From the Foreman source checkout:
+
+[source,shell]
+----
+bundle exec rails runner script/seed_ansible_dashboard.rb
+----
+
+The organization and location must already exist. Defaults are
+_Default Organization_ and _Default Location_. To choose other values:
+
+[source,shell]
+----
+ORG="My Organization" LOCATION="My Location" bundle exec rails runner script/seed_ansible_dashboard.rb
+----
+
+On a packaged installation, copy the script to a path readable by Foreman,
+open its console with `sudo foreman-rake console`, and run:
+
+[source,ruby]
+----
+# Optional; omit these assignments to use the defaults.
+ENV['ORG'] = 'My Organization'
+ENV['LOCATION'] = 'My Location'
+load '/path/to/seed_ansible_dashboard.rb'
+----
+
+== Check the widget
+
+Select the organization and location used above, add the
+_Host Configuration Status for Ansible_ widget if necessary, and refresh
+the Dashboard. Clear any dashboard search filter that excludes the demo hosts.
+The user viewing the dashboard needs permission to view these hosts and reports.
+
+[cols="1,1",options="header"]
+|===
+|Status |Demo count
+|OK |3
+|Active |2
+|Error |1
+|Pending changes |1
+|Out of sync |1
+|Disabled alerts |1
+|No report |0
+|===
+
+Existing Ansible hosts can increase these counts. The script prints the
+widget's backend counts filtered to `name ~ ansible-dashboard-`.
+Use that search to locate the demo hosts and check the widget's links to
+host lists and the corresponding configuration reports.
+
+The widget selects hosts whose latest configuration report has origin
+`Ansible`. Hosts without reports therefore do not appear in this
+origin-specific widget.
+
+For the expected out-of-sync count, `ansible_out_of_sync_disabled` must be
+false. The script does not change this setting. Fresh reports become stale
+after `ansible_interval` minutes (30 in the original reproducer).
+Rerun the script to refresh them; each run appends one report per demo host,
+while keeping the out-of-sync scenario deliberately old.
+
+Hosts are named `ansible-dashboard-<scenario>.example.test` and marked with
+comment `Synthetic Ansible dashboard demo data`. The script refuses to
+modify an existing host of the same name without that marker. Organization
+and location overrides apply when creating hosts; refreshing existing demo
+hosts keeps their original organization and location.
+
+Reports and host statuses are created through Rails models. This reproducer
+exercises dashboard aggregation and navigation, not Ansible execution or
+report upload/import. It includes synthetic pending changes to exercise that
+widget category.
+
+== Cleanup
+
+From a source checkout:
+
+[source,shell]
+----
+ACTION=cleanup bundle exec rails runner script/seed_ansible_dashboard.rb
+----
+
+Or in the packaged installation's Rails console:
+
+[source,ruby]
+----
+ENV['ACTION'] = 'cleanup'
+load '/path/to/seed_ansible_dashboard.rb'
+ENV.delete('ACTION')
+----
+
+Cleanup deletes the nine named, marked demo hosts and their associated
+reports. It does not require the original organization/location options.
