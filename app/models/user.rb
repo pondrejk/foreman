@@ -440,7 +440,9 @@ class User < ApplicationRecord
       action = Foreman::AccessControl.normalize_path_hash(action)
       return true if editing_self?(action)
     end
-    cached_roles.detect { |role| role.allowed_to?(action) }.present?
+    cached_roles.detect do |role|
+      role.allowed_in_current_taxonomy?(self) && role.allowed_to?(action)
+    end.present?
   end
 
   def logged?

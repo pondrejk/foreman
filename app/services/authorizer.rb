@@ -22,7 +22,10 @@ class Authorizer
     return true if user.admin?
 
     if subject.nil?
-      user.permissions.exists?(:name => permission)
+      record = permission_record(permission)
+      record.present? && user.cached_roles.any? do |role|
+        role.allowed_in_current_taxonomy?(user) && role.has_permission?(record)
+      end
     else
       return collection_cache_lookup(subject, permission) if cache
 
@@ -215,6 +218,11 @@ class Authorizer
 
   def resource_name(klass)
     Permission.resource_name(klass)
+  end
+
+  def permission_record(permission)
+    @permission_records ||= {}
+    @permission_records[permission] ||= Permission.find_by(:name => permission)
   end
 
   def base_ids
