@@ -150,6 +150,12 @@ class Role < ApplicationRecord
     end
   end
 
+  def allowed_in_current_taxonomy?(user = User.current)
+    return true if user&.admin?
+
+    matches_current_taxonomy?(Organization, user) && matches_current_taxonomy?(Location, user)
+  end
+
   # options can have following keys
   # :search - scoped search applied to built filters
   def add_permissions(permissions, options = {})
@@ -309,6 +315,22 @@ class Role < ApplicationRecord
   def not_locked
     errors.add(:base, _("This role is locked from being modified by users.")) if locked? && !modify_locked && changed?
     errors.empty?
+  end
+
+  def matches_current_taxonomy?(taxonomy_class, user)
+    role_taxonomy_ids = public_send("#{taxonomy_class.name.underscore}_ids")
+    return true if role_taxonomy_ids.empty?
+
+    current_taxonomy = taxonomy_class.current
+    allowed_taxonomy_ids = if current_taxonomy.present?
+                             [current_taxonomy.id]
+                           elsif user.present?
+                             user.public_send("my_#{taxonomy_class.name.underscore.pluralize}").pluck(:id)
+                           else
+                             []
+                           end
+
+    (role_taxonomy_ids & allowed_taxonomy_ids).any?
   end
 
   def find_filter(resource_type, current_filters, search = :skip)
